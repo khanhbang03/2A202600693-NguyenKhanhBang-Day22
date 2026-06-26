@@ -68,15 +68,15 @@ model, tokenizer = FastLanguageModel.from_pretrained(
 if tokenizer.pad_token is None:
     tokenizer.pad_token = tokenizer.eos_token
 
-# Stack SFT-mini → DPO adapters
-SFT_PATH = REPO_ROOT / "adapters" / "sft-mini"
-model = PeftModel.from_pretrained(model, str(SFT_PATH))
-print(f"Loaded SFT-mini adapter from {SFT_PATH}")
+# Load the DPO adapter directly. NB3 starts from SFT and saves the DPO-updated
+# LoRA, so this one adapter already contains the aligned policy delta.
+model = PeftModel.from_pretrained(model, str(DPO_PATH))
+print(f"Loaded DPO adapter from {DPO_PATH}")
 
 # %% [markdown]
-# > **Note:** The DPO adapter trained in NB3 stacks on top of SFT. To get a fully
-# > aligned merged model, we apply both adapters before merging. Unsloth's
-# > `save_pretrained_merged` handles the SFT + DPO + base merge in one shot.
+# > **Note:** The DPO adapter trained in NB3 starts from the SFT adapter and is
+# > saved as the aligned adapter. Loading `adapters/dpo/` on the base model is
+# > enough to recover the SFT+DPO policy for merge/export.
 
 # %% [markdown]
 # ## 2. Save merged FP16 weights
